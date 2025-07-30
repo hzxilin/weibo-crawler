@@ -19,6 +19,8 @@ from collections import OrderedDict
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from time import sleep
+import pandas as pd
+from random import sample
 
 import requests
 from requests.exceptions import RequestException
@@ -46,6 +48,7 @@ DTFORMAT = "%Y-%m-%dT%H:%M:%S"
 
 class Weibo(object):
     def __init__(self, config):
+        self.ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         """Weibo类初始化"""
         self.validate_config(config)
         self.only_crawl_original = config["only_crawl_original"]  # 取值范围为0、1,程序默认值为0,代表要爬取用户的全部微博,1代表只爬取用户的原创微博
@@ -368,7 +371,7 @@ class Weibo(object):
         file_dir = os.path.split(os.path.realpath(__file__))[0] + os.sep + "weibo"
         if not os.path.isdir(file_dir):
             os.makedirs(file_dir)
-        file_path = file_dir + os.sep + "users.csv"
+        file_path = os.path.join(file_dir, f"users_{self.ts}.csv")
         self.user_csv_file_path = file_path
         result_headers = [
             "用户id",
@@ -475,15 +478,24 @@ class Weibo(object):
         params = {"containerid": "100505" + str(self.user_config["user_id"])}
         url = "https://m.weibo.cn/api/container/getIndex"
         
-        # 这里在读取下一个用户的时候很容易被ban，需要优化休眠时长
         # 加一个count，不需要一上来啥都没干就sleep
         if self.long_sleep_count_before_each_user > 0:
-            sleep_time = random.randint(30, 60)
-            # 添加log，否则一般用户不知道以为程序卡了
-            logger.info(f"""短暂sleep {sleep_time}秒，避免被ban""")        
+            sleep_time = random.uniform(1, 2)    
             sleep(sleep_time)
-            logger.info("sleep结束")  
-        self.long_sleep_count_before_each_user = self.long_sleep_count_before_each_user + 1      
+        
+        # 每20个用户前的长时间sleep避免被ban
+        if self.long_sleep_count_before_each_user % 20 == 10 :
+            sleep_time = random.uniform(1, 3)
+            logger.info(f"""爬好多啦, sleep {sleep_time}秒，避免被ban""")        
+            sleep(sleep_time)
+        self.long_sleep_count_before_each_user = self.long_sleep_count_before_each_user + 1  
+
+        # 每1000个用户前的长时间sleep避免被ban
+        if self.long_sleep_count_before_each_user % 1000 == 500 :
+            sleep_time = random.randint(60, 120)
+            logger.info(f"""真厉害!爬超多了! sleep {sleep_time}秒，避免被ban""")        
+            sleep(sleep_time)
+        self.long_sleep_count_before_each_user = self.long_sleep_count_before_each_user + 1  
 
         max_retries = 5  # 设置最大重试次数，避免无限循环
         retries = 0
@@ -553,6 +565,9 @@ class Weibo(object):
                         logger.info("用户已完成验证码验证，继续请求用户信息。")
                         retries = 0  # 重置重试计数器
                         continue
+                    elif "这里还没有内容" in js.get("msg", ""):
+                        logger.warning("用户信息不存在或未公开，跳过该用户。")
+                        return 1
                     else:
                         logger.error("验证码验证失败或未完成，程序将退出。")
                         sys.exit()
@@ -574,7 +589,7 @@ class Weibo(object):
         url = "https://m.weibo.cn/detail/%s" % id
         logger.info(f"""URL: {url} """)
         for i in range(5):
-            sleep(random.uniform(1.0, 2.5))
+            sleep(random.uniform(0.1, 0.5))
             html = self.session.get(url, headers=self.headers, verify=False).text
             html = html[html.find('"status":') :]
             html = html[: html.rfind('"call"')]
@@ -1185,7 +1200,7 @@ class Weibo(object):
 
         # 随机睡眠一下
         if max_count % 40 == 0:
-            sleep(random.randint(1, 5))
+            sleep(random.randint(1, 2))
 
         cur_count += count
         max_id = data.get("max_id")
@@ -1238,7 +1253,7 @@ class Weibo(object):
 
         # 随机睡眠一下
         if page % 2 == 0:
-            sleep(random.randint(1, 5))
+            sleep(random.randint(1, 2))
 
         req_page = data.get("max")
 
@@ -1298,7 +1313,7 @@ class Weibo(object):
 
         # 随机睡眠一下
         if page % 2 == 0:
-            sleep(random.randint(2, 5))
+            sleep(random.randint(1, 2))
 
         req_page = data.get("max")
 
@@ -2214,7 +2229,7 @@ class Weibo(object):
                     # 制会自动解除)，加入随机等待模拟人的操作，可降低被系统限制的风险。默
                     # 认是每爬取1到5页随机等待6到10秒，如果仍然被限，可适当增加sleep时间
                     if (page - page1) % random_pages == 0 and page < page_count:
-                        sleep(random.randint(6, 10))
+                        sleep(random.randint(1, 3))
                         page1 = page
                         random_pages = random.randint(1, 5)
 
@@ -2273,6 +2288,7 @@ class Weibo(object):
     def start(self):
         """运行爬虫"""
         try:
+
             for user_config in self.user_config_list:
                 if len(user_config["query_list"]):
                     for query in user_config["query_list"]:
@@ -2317,8 +2333,32 @@ def get_config():
         )
         sys.exit()
 
+def update_userlist(user_file):
+    weibo_dir = "weibo"
+    output_file = "to_crawl_updated.txt"
+    user_ids_in_csvs = set()
+    for fname in os.listdir(weibo_dir):
+        if fname.endswith(".csv"):
+            fpath = os.path.join(weibo_dir, fname)
+            try:
+                df = pd.read_csv(fpath, encoding="utf-8", usecols=["用户id"])
+                user_ids_in_csvs.update(df["用户id"].dropna().astype(str))
+            except Exception as e:
+                print(f"跳过 {fname}，因为读取出错：{e}")
+    with open(user_file, "r", encoding="utf-8") as f:
+        all_user_ids = [line.strip() for line in f if line.strip()]
+    to_crawl_ids = [uid for uid in all_user_ids if uid not in user_ids_in_csvs]
+    if len(to_crawl_ids) > 10000:
+        to_crawl_ids = sample(to_crawl_ids, 10000)
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.writelines(uid + "\n" for uid in to_crawl_ids)
+    print(f"共有 {len(to_crawl_ids)} 个用户尚未爬取，已写入 {output_file}")
+
 
 def main():
+    user_file = "user_tocrawl.txt"         # 包含全部目标用户 ID（每行一个 ID）
+    update_userlist(user_file)
+
     try:
         config = get_config()
         wb = Weibo(config)
