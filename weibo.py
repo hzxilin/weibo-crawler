@@ -480,12 +480,12 @@ class Weibo(object):
         
         # 加一个count，不需要一上来啥都没干就sleep
         if self.long_sleep_count_before_each_user > 0:
-            sleep_time = random.uniform(1, 2)    
+            sleep_time = random.uniform(1, 1.5)    
             sleep(sleep_time)
         
         # 每20个用户前的长时间sleep避免被ban
         if self.long_sleep_count_before_each_user % 20 == 10 :
-            sleep_time = random.uniform(1, 3)
+            sleep_time = random.uniform(1, 2)
             logger.info(f"""爬好多啦, sleep {sleep_time}秒，避免被ban""")        
             sleep(sleep_time)
         self.long_sleep_count_before_each_user = self.long_sleep_count_before_each_user + 1  
@@ -2348,8 +2348,8 @@ def update_userlist(user_file):
     with open(user_file, "r", encoding="utf-8") as f:
         all_user_ids = [line.strip() for line in f if line.strip()]
     to_crawl_ids = [uid for uid in all_user_ids if uid not in user_ids_in_csvs]
-    if len(to_crawl_ids) > 10000:
-        to_crawl_ids = sample(to_crawl_ids, 10000)
+    if len(to_crawl_ids) > 50000:
+        to_crawl_ids = sample(to_crawl_ids, 50000)
     with open(output_file, "w", encoding="utf-8") as f:
         f.writelines(uid + "\n" for uid in to_crawl_ids)
     print(f"共有 {len(to_crawl_ids)} 个用户尚未爬取，已写入 {output_file}")
