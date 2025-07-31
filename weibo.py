@@ -481,7 +481,7 @@ class Weibo(object):
         
         # 加一个count，不需要一上来啥都没干就sleep
         if self.long_sleep_count_before_each_user > 0:
-            sleep_time = random.uniform(1, 1.5)    
+            sleep_time = random.uniform(1.2, 1.5)    
             sleep(sleep_time)
         
         # 每20个用户前的长时间sleep避免被ban
