@@ -563,6 +563,7 @@ class Weibo(object):
                     return 0
                 else:
                     logger.warning("未能获取到用户信息，可能需要验证码验证。")
+                    print("当前已经爬取用户数量:", self.long_sleep_count_before_each_user)
                     if self.handle_captcha(js):
                         logger.info("用户已完成验证码验证，继续请求用户信息。")
                         retries = 0  # 重置重试计数器
