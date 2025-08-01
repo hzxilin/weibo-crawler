@@ -19,7 +19,7 @@
     "repost_max_download_count": 100,
     "user_id_as_folder_name": 0,
     "remove_html_tag": 1,
-    "cookie": "SCF=AmmE2M81OTMaoODsxVOeRn6PTr8gTzvJPnDWGzRa0jNtfanrY7_T8J98pz_duL4wpCqSbX9F-In2x_aAgD3lCyE.; SUB=_2A25FgZ3FDeRhGeFN7FcV9i7Jyj-IHXVm_p8NrDV6PUJbktANLUbVkW1NQ82zFIeH57iW6umjhsj3OpjA2lilbQtT; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W53dkTRZo1x_2cqjOTZRS-35NHD95QNe0MfShq7SK20Ws4Dqcj_i--Ni-2RiKn7i--4i-2fi-82i--Ri-2fi-isi--ciKLhi-2Ri--ciKLhi-2R; ALF=1756199573; _T_WM=a43858684b03f950b83a20fd2935e16f; MLOGIN=1",
+    "cookie": "SCF=AmmE2M81OTMaoODsxVOeRn6PTr8gTzvJPnDWGzRa0jNtfanrY7_T8J98pz_duL4wpCqSbX9F-In2x_aAgD3lCyE.; SUB=_2A25FgZ3FDeRhGeFN7FcV9i7Jyj-IHXVm_p8NrDV6PUJbktANLUbVkW1NQ82zFIeH57iW6umjhsj3OpjA2lilbQtT; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W53dkTRZo1x_2cqjOTZRS-35NHD95QNe0MfShq7SK20Ws4Dqcj_i--Ni-2RiKn7i--4i-2fi-82i--Ri-2fi-isi--ciKLhi-2Ri--ciKLhi-2R; ALF=1756199573; _T_WM=a43858684b03f950b83a20fd2935e16f; MLOGIN=1; geetest_token=9f8799bff2645d06617a107715a4d91c",
     "query_list": ["美国"],
     "mysql_config": {
         "host": "localhost",
