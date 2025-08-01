@@ -21,6 +21,7 @@ from pathlib import Path
 from time import sleep
 import pandas as pd
 from random import sample
+import argparse
 
 import requests
 from requests.exceptions import RequestException
@@ -2334,7 +2335,7 @@ def get_config():
         )
         sys.exit()
 
-def update_userlist(user_file):
+def update_userlist(user_file, args):
     weibo_dir = "weibo"
     output_file = "to_crawl_updated.txt"
     user_ids_in_csvs = set()
@@ -2349,16 +2350,26 @@ def update_userlist(user_file):
     with open(user_file, "r", encoding="utf-8") as f:
         all_user_ids = [line.strip() for line in f if line.strip()]
     to_crawl_ids = [uid for uid in all_user_ids if uid not in user_ids_in_csvs]
-    if len(to_crawl_ids) > 30000:
-        to_crawl_ids = sample(to_crawl_ids, 30000)
+    if len(to_crawl_ids) > args.idsize:
+        to_crawl_ids = sample(to_crawl_ids, args.idsize)
     with open(output_file, "w", encoding="utf-8") as f:
         f.writelines(uid + "\n" for uid in to_crawl_ids)
     print(f"共有 {len(to_crawl_ids)} 个用户尚未爬取，已写入 {output_file}")
 
+def get_args():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--idsize", type=int, default=30000)
+  parser.add_argument("--test", action='store_true')
+
+  args = parser.parse_args()
+  return args
 
 def main():
-    user_file = "user_tocrawl.txt"         # 包含全部目标用户 ID（每行一个 ID）
-    update_userlist(user_file)
+    args = get_args()
+    user_file = "user_tocrawl.txt"
+    if args.test:
+        args.idsize=2
+    update_userlist(user_file, args)
 
     try:
         config = get_config()
