@@ -2349,8 +2349,8 @@ def update_userlist(user_file):
     with open(user_file, "r", encoding="utf-8") as f:
         all_user_ids = [line.strip() for line in f if line.strip()]
     to_crawl_ids = [uid for uid in all_user_ids if uid not in user_ids_in_csvs]
-    if len(to_crawl_ids) > 50000:
-        to_crawl_ids = sample(to_crawl_ids, 50000)
+    if len(to_crawl_ids) > 30000:
+        to_crawl_ids = sample(to_crawl_ids, 30000)
     with open(output_file, "w", encoding="utf-8") as f:
         f.writelines(uid + "\n" for uid in to_crawl_ids)
     print(f"共有 {len(to_crawl_ids)} 个用户尚未爬取，已写入 {output_file}")
